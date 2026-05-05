@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: autostocker-smart-inventory-api
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm run server
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: 22.17.1
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false

@@ -1,0 +1,224 @@
+[
+  {
+    "sku": "HOU-GHSM-010",
+    "name": "Ghadi Smart Detergent Powder",
+    "query": "Ghadi Smart Detergent Powder product",
+    "imageUrl": "https://sheikhgroup.in/wp-content/uploads/2023/07/811ot5in21L._SL1500_.jpg",
+    "localPath": "/product-images/HOU-GHSM-010.jpg",
+    "status": "downloaded"
+  },
+  {
+    "sku": "HOU-UNWS-010",
+    "name": "Uni Wash Detergent Powder",
+    "query": "Uni Wash Detergent Powder product",
+    "imageUrl": "https://www.sroddhaa.com/wp-content/uploads/2021/11/uni-wash-detergent-powder-2kg.jpg",
+    "localPath": "/product-images/HOU-UNWS-010.jpg",
+    "status": "downloaded"
+  },
+  {
+    "sku": "HOU-GHDP-010",
+    "name": "Ghadi Detergent Powder",
+    "query": "Ghadi Detergent Powder product",
+    "imageUrl": "https://ejansuvidha.com/images/product-images/1623240700980780258.jpg",
+    "localPath": "/product-images/HOU-GHDP-010.jpg",
+    "status": "downloaded"
+  },
+  {
+    "sku": "HOU-ARPW-010",
+    "name": "Ariel Perfect Wash",
+    "query": "Ariel Perfect Wash product",
+    "imageUrl": "https://static.wixstatic.com/media/a962c7_56126d0ca7d741939c66b0752ce52bdc~mv2.jpg/v1/fit/w_500,h_500,q_90/file.jpg",
+    "localPath": "/product-images/HOU-ARPW-010.jpg",
+    "status": "downloaded"
+  },
+  {
+    "sku": "HOU-TDPB-010",
+    "name": "Tide Plus Budget Pack",
+    "query": "Tide Plus Budget Pack product",
+    "imageUrl": "https://images.onlinedpi.com/uploads/2019/04/Tide-Plus-Detergent-Powder-500gm-1kg-2kg-570x464.jpg",
+    "localPath": "/product-images/HOU-TDPB-010.jpg",
+    "status": "downloaded"
+  },
+  {
+    "sku": "HOU-GHCK-010",
+    "name": "Ghadi Detergent Cake",
+    "query": "Ghadi Detergent Cake product",
+    "imageUrl": "https://usercontent.one/wp/sabziadda.com/wp-content/uploads/2021/01/Ghadi-Detergent-Cake.jpg?media=1682240784",
+    "localPath": "/product-images/HOU-GHCK-010.jpg",
+    "status": "downloaded"
+  },
+  {
+    "sku": "HOU-FMDC-010",
+    "name": "Fighter Master Detergent Cake",
+    "query": "Fighter Master Detergent Cake product",
+    "status": "downloaded",
+    "error": "Error: read ECONNRESET",
+    "imageUrl": "https://3.imimg.com/data3/LF/XB/MY-9827370/pk-fighter-detergent-cake-500x500.jpg",
+    "localPath": "/product-images/HOU-FMDC-010.jpg"
+  },
+  {
+    "sku": "HOU-SAMP-010",
+    "name": "Satasat Magic Power Detergent Cake",
+    "query": "Satasat Magic Power Detergent Cake product",
+    "imageUrl": "https://static.wixstatic.com/media/052b2d_3fe9c92335524c49b8a0390d6a395e0c~mv2.jpg/v1/fill/w_980,h_980,al_c,q_85,usm_0.66_1.00_0.01,enc_auto/052b2d_3fe9c92335524c49b8a0390d6a395e0c~mv2.jpg",
+    "localPath": "/product-images/HOU-SAMP-010.jpg",
+    "status": "downloaded"
+  },
+  {
+    "sku": "CNF-LAVN-250",
+    "name": "Laveno Assorted Chocolate Pack",
+    "query": "Laveno Assorted Chocolate Pack product",
+    "imageUrl": "https://www.volonepal.com/wp-content/uploads/2025/09/VOLO-CHOCOLATES-FORMATS-10.png",
+    "localPath": "/product-images/CNF-LAVN-250.png",
+    "status": "downloaded"
+  },
+  {
+    "sku": "CNF-LAVG-450",
+    "name": "Laveno Gift Chocolate Box",
+    "query": "Laveno Gift Chocolate Box product",
+    "imageUrl": "https://www.brownandwhite.in/wp-content/uploads/2021/09/BrownAndWhite-Chocolate-Gift-Box-03-01.jpg",
+    "localPath": "/product-images/CNF-LAVG-450.jpg",
+    "status": "downloaded"
+  },
+  {
+    "sku": "CNF-BFOR-250",
+    "name": "Ozamic Bite Fills Orange Jar",
+    "query": "Ozamic Bite Fills Orange Jar product",
+    "status": "downloaded",
+    "error": "Error: read ECONNRESET",
+    "imageUrl": "https://5.imimg.com/data5/KA/OW/MY-60131769/bite-fills-orange-candy-500x500.jpg",
+    "localPath": "/product-images/CNF-BFOR-250.jpg"
+  },
+  {
+    "sku": "CNF-BFER-250",
+    "name": "Ozamic Bite Fills Elaichi Rose Jar",
+    "query": "Ozamic Bite Fills Elaichi Rose Jar product",
+    "imageUrl": "https://cdn.shopclues.com/images/detailed/42002/GAICHR35_1469635068.jpg",
+    "localPath": "/product-images/CNF-BFER-250.jpg",
+    "status": "downloaded"
+  },
+  {
+    "sku": "CNF-BFBP-250",
+    "name": "Ozamic Bite Fills Blueberry Pista Jar",
+    "query": "Ozamic Bite Fills Blueberry Pista Jar product",
+    "status": "downloaded",
+    "error": "Error: HTTP 403 for https://www.prabhujipurefood.com/wp-content/uploads/2024/06/13172699401678641033.KesarPista900x900-500x500.png",
+    "imageUrl": "http://tassyam.com/cdn/shop/products/premium-blueberry-250g-jar-896324.png?v=1690713990",
+    "localPath": "/product-images/CNF-BFBP-250.png"
+  },
+  {
+    "sku": "CNF-BFST-250",
+    "name": "Ozamic Bite Fills Strawberry Jar",
+    "query": "Ozamic Bite Fills Strawberry Jar product",
+    "status": "downloaded",
+    "error": "Error: read ECONNRESET",
+    "imageUrl": "https://5.imimg.com/data5/OQ/OY/MY-60131769/strawberry-chocolate-500x500.jpg",
+    "localPath": "/product-images/CNF-BFST-250.jpg"
+  },
+  {
+    "sku": "CNF-BFCT-250",
+    "name": "Ozamic Bite Fills Coconut Tiramisu Jar",
+    "query": "Ozamic Bite Fills Coconut Tiramisu Jar product",
+    "imageUrl": "https://cupofyum.com/uploads/images/000/197/751/197751-coconut-tiramisu-in-a-jar-da780118671a6227a7c96f96fa6aee82.jpg",
+    "localPath": "/product-images/CNF-BFCT-250.jpg",
+    "status": "downloaded"
+  },
+  {
+    "sku": "CNF-BFSA-250",
+    "name": "Ozamic Bite Fills Saffron Jar",
+    "query": "Ozamic Bite Fills Saffron Jar product",
+    "imageUrl": "https://theorganicbite.com/cdn/shop/products/cicdtestblogs_1_1500x.png?v=1700890221",
+    "localPath": "/product-images/CNF-BFSA-250.png",
+    "status": "downloaded"
+  },
+  {
+    "sku": "CNF-BFOP-125",
+    "name": "Ozamic Bite Fills Orange Pouch",
+    "query": "Ozamic Bite Fills Orange Pouch product",
+    "imageUrl": "https://5.imimg.com/data5/KA/OW/MY-60131769/bite-fills-orange-candy-500x500.jpg",
+    "localPath": "/product-images/CNF-BFOP-125.jpg",
+    "status": "downloaded"
+  },
+  {
+    "sku": "CNF-BFCP-125",
+    "name": "Ozamic Bite Fills Coconut Pralines Pouch",
+    "query": "Ozamic Bite Fills Coconut Pralines Pouch product",
+    "imageUrl": "https://5.imimg.com/data5/RI/VA/MY-58152756/1-500x500.jpg",
+    "localPath": "/product-images/CNF-BFCP-125.jpg",
+    "status": "downloaded"
+  },
+  {
+    "sku": "PCR-PEGX-040",
+    "name": "Pro-ease Go XL",
+    "query": "Pro-ease Go XL product",
+    "imageUrl": "https://rukminim1.flixcart.com/image/400/400/kv5kfww0/sanitary-pad-pantyliner/e/j/k/xl-go-xl-6x10-sanitary-pads-10-sanitary-pad-pro-ease-original-imag84gsphg4uavn.jpeg?q=70",
+    "localPath": "/product-images/PCR-PEGX-040.jpeg",
+    "status": "downloaded"
+  },
+  {
+    "sku": "PCR-WCXL-045",
+    "name": "Whisper Choice XL",
+    "query": "Whisper Choice XL product",
+    "imageUrl": "https://pallimart.com/storage/app/public/product/2023-05-16-64639a218bcb0.png",
+    "localPath": "/product-images/PCR-WCXL-045.png",
+    "status": "downloaded"
+  },
+  {
+    "sku": "PCR-SSXL-042",
+    "name": "Stayfree Secure XL",
+    "query": "Stayfree Secure XL product",
+    "status": "downloaded",
+    "error": "Error: read ECONNRESET",
+    "imageUrl": "https://www.bigbasket.com/media/uploads/p/l/263996_23-stayfree-sanitary-pads-secure-dry-cover-with-wings.jpg",
+    "localPath": "/product-images/PCR-SSXL-042.jpg"
+  },
+  {
+    "sku": "PCR-PEUX-050",
+    "name": "Pro-ease Go Ultra XL+",
+    "query": "Pro-ease Go Ultra XL+ product",
+    "imageUrl": "https://dcprovide.com/wp-content/uploads/2023/09/5.jpg",
+    "localPath": "/product-images/PCR-PEUX-050.jpg",
+    "status": "downloaded"
+  },
+  {
+    "sku": "PCR-WCUX-050",
+    "name": "Whisper Choice Ultra XL",
+    "query": "Whisper Choice Ultra XL product",
+    "imageUrl": "https://wholesalepasalplus.com/uploads/product/WHISPER_CHOICE_ULTRA_XL_280MM.jpg.png",
+    "localPath": "/product-images/PCR-WCUX-050.png",
+    "status": "downloaded"
+  },
+  {
+    "sku": "PCR-PEEN-050",
+    "name": "Pro-ease XL with Extra Night Pads",
+    "query": "Pro-ease XL with Extra Night Pads product",
+    "status": "downloaded",
+    "error": "Error: read ECONNRESET",
+    "imageUrl": "https://5.imimg.com/data5/SELLER/Default/2023/9/348310305/EY/MS/HA/60481484/pro-ease-xl-extra-night-pads-1000x1000.jpeg",
+    "localPath": "/product-images/PCR-PEEN-050.jpeg"
+  },
+  {
+    "sku": "PCR-PEGP-099",
+    "name": "Pro-ease Go XL 15 Pads",
+    "query": "Pro-ease Go XL 15 Pads product",
+    "imageUrl": "https://dcprovide.com/wp-content/uploads/2023/09/6.jpg",
+    "localPath": "/product-images/PCR-PEGP-099.jpg",
+    "status": "downloaded"
+  },
+  {
+    "sku": "PCR-PELP-125",
+    "name": "Pro-ease Go XL 15 Pads Large Pack",
+    "query": "Pro-ease Go XL 15 Pads Large Pack product",
+    "imageUrl": "https://dcprovide.com/wp-content/uploads/2023/09/6.jpg",
+    "localPath": "/product-images/PCR-PELP-125.jpg",
+    "status": "downloaded"
+  },
+  {
+    "sku": "PCR-PEMP-140",
+    "name": "Pro-ease XL Extra Night Pads Mega Pack",
+    "query": "Pro-ease XL Extra Night Pads Mega Pack product",
+    "imageUrl": "https://rukminim1.flixcart.com/image/600/600/xif0q/sanitary-pad-pantyliner/y/v/f/day-night-combo-big-pack-10-sanitary-pads-6-10-pics-xl-10-original-imagkemzgncsbzhv.jpeg?q=70",
+    "localPath": "/product-images/PCR-PEMP-140.jpeg",
+    "status": "downloaded"
+  }
+]
