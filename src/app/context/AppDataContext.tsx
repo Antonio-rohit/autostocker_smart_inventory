@@ -104,6 +104,8 @@ interface AppDataContextValue {
   error: string | null;
   refreshData: () => Promise<void>;
   createProduct: (payload: CreateProductPayload) => Promise<void>;
+  updateProductPrice: (productId: string, price: number) => Promise<void>;
+  deleteProduct: (productId: string) => Promise<void>;
   addStock: (productId: string, quantity: number, supplier: string, purchasePrice: number) => Promise<void>;
   recordSale: (productId: string, quantity: number, totalPrice: number) => Promise<void>;
   checkout: (payload: CheckoutPayload) => Promise<void>;
@@ -241,6 +243,22 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   const createProduct = useCallback(
     async (payload: CreateProductPayload) => {
       await api.createProduct(payload);
+      await refreshData();
+    },
+    [refreshData]
+  );
+
+  const updateProductPrice = useCallback(
+    async (productId: string, price: number) => {
+      await api.updateProduct(productId, { price });
+      await refreshData();
+    },
+    [refreshData]
+  );
+
+  const deleteProduct = useCallback(
+    async (productId: string) => {
+      await api.deleteProduct(productId);
       await refreshData();
     },
     [refreshData]
@@ -396,6 +414,8 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
       error,
       refreshData,
       createProduct,
+      updateProductPrice,
+      deleteProduct,
       addStock,
       recordSale,
       checkout,
@@ -419,6 +439,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
       data?.products,
       data?.recommendations,
       data?.transactions,
+      deleteProduct,
       derivedDashboard,
       error,
       formatCurrency,
@@ -432,6 +453,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
       unreadNotificationCount,
       updateBusinessInfo,
       updateNotifications,
+      updateProductPrice,
       updateSettings,
       visibleNotifications,
     ]

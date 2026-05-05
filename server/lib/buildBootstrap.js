@@ -26,8 +26,20 @@ export const buildBootstrap = async () => {
     return map;
   }, new Map());
 
+  const billInfoByTransactionId = billDocs.reduce((map, bill) => {
+    bill.transactionIds.forEach((transactionId) => {
+      map.set(transactionId.toString(), {
+        paymentStatus: bill.paymentStatus ?? "paid",
+        billNumber: bill.billNumber,
+      });
+    });
+    return map;
+  }, new Map());
+
   const products = productDocs.map((product) => serializeProduct(product, transactionsByProductId.get(product._id.toString()) ?? []));
-  const transactions = transactionDocs.map(serializeTransaction);
+  const transactions = transactionDocs.map((transaction) =>
+    serializeTransaction(transaction, billInfoByTransactionId.get(transaction._id.toString()) ?? null)
+  );
   const bills = billDocs.map(serializeBill);
   const analytics = buildAnalytics(products, transactions);
   const dashboard = buildDashboard(products, transactions, analytics);

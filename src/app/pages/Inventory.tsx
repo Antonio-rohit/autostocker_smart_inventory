@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router";
-import { Search, Filter, ArrowUpDown, Plus, Package, TrendingUp, TrendingDown, Minus, ShoppingCart, PackagePlus, Clock } from "lucide-react";
+import { Search, Filter, ArrowUpDown, Plus, Package, TrendingUp, TrendingDown, Minus, ShoppingCart, PackagePlus, Clock, Pencil, Trash2 } from "lucide-react";
 import { motion } from "motion/react";
 import { RecordSaleModal } from "../components/RecordSaleModal";
 import { AddStockModal } from "../components/AddStockModal";
@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { useAppData } from "../context/AppDataContext";
 
 export function Inventory() {
-  const { products, transactions, addStock, recordSale, loading, error, formatCurrency } = useAppData();
+  const { products, transactions, addStock, recordSale, updateProductPrice, deleteProduct, loading, error, formatCurrency } = useAppData();
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -72,6 +72,40 @@ export function Inventory() {
     }
   };
 
+  const handleEditPrice = async (e: React.MouseEvent, productId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const product = products.find((p) => p.id === productId);
+    if (!product) return;
+
+    const nextPriceInput = window.prompt(`Enter new price for ${product.name}`, String(product.price));
+    if (nextPriceInput === null) return;
+
+    const nextPrice = Number(nextPriceInput.trim());
+    if (Number.isNaN(nextPrice) || nextPrice < 0) {
+      toast.error("Please enter a valid price");
+      return;
+    }
+
+    await updateProductPrice(productId, nextPrice);
+    toast.success(`Updated price for ${product.name}`);
+  };
+
+  const handleDeleteProduct = async (e: React.MouseEvent, productId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const product = products.find((p) => p.id === productId);
+    if (!product) return;
+
+    const confirmed = window.confirm(`Delete ${product.name}? This will also remove its related transactions from history.`);
+    if (!confirmed) return;
+
+    await deleteProduct(productId);
+    toast.success(`${product.name} deleted`);
+  };
+
   const onRecordSale = async (productId: string, quantity: number, totalPrice: number) => {
     const product = products.find((p) => p.id === productId);
     if (product) {
@@ -112,7 +146,6 @@ export function Inventory() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -133,7 +166,6 @@ export function Inventory() {
         </Link>
       </motion.div>
 
-      {/* Tabs */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -168,10 +200,8 @@ export function Inventory() {
         </button>
       </motion.div>
 
-      {/* Products View */}
       {activeTab === "products" && (
         <>
-          {/* Filters */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -179,7 +209,6 @@ export function Inventory() {
             className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 shadow-sm"
           >
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* Search */}
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                 <input
@@ -191,7 +220,6 @@ export function Inventory() {
                 />
               </div>
 
-              {/* Category Filter */}
               <div className="relative">
                 <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                 <select
@@ -207,7 +235,6 @@ export function Inventory() {
                 </select>
               </div>
 
-              {/* Status Filter */}
               <div className="relative">
                 <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                 <select
@@ -222,7 +249,6 @@ export function Inventory() {
                 </select>
               </div>
 
-              {/* Sort */}
               <div className="relative">
                 <ArrowUpDown className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                 <select
@@ -238,7 +264,6 @@ export function Inventory() {
             </div>
           </motion.div>
 
-          {/* Products Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
             {filteredProducts.map((product, index) => (
               <motion.div
@@ -284,7 +309,6 @@ export function Inventory() {
                     </div>
                   </div>
 
-                  {/* Stock Level */}
                   <div className="mb-3">
                     <div className="flex items-center justify-between text-sm mb-2">
                       <span className="text-slate-600 dark:text-slate-400">Stock Level</span>
@@ -308,7 +332,6 @@ export function Inventory() {
                     </div>
                   </div>
 
-                  {/* Trend and Revenue */}
                   <div className="flex items-center justify-between pt-3 border-t border-slate-200 dark:border-slate-700 mb-4">
                     <div className="flex items-center gap-2">
                       {product.trend === "up" && <TrendingUp className="w-4 h-4 text-green-500" />}
@@ -326,7 +349,6 @@ export function Inventory() {
                   </div>
                 </Link>
 
-                {/* Action Buttons */}
                 <div className="flex gap-2">
                   <button
                     onClick={(e) => handleRecordSale(e, product.id)}
@@ -341,6 +363,23 @@ export function Inventory() {
                   >
                     <Plus className="w-4 h-4" />
                     Add Stock
+                  </button>
+                </div>
+
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  <button
+                    onClick={(e) => handleEditPrice(e, product.id)}
+                    className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 transition-colors dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-700"
+                  >
+                    <Pencil className="w-4 h-4" />
+                    Change Price
+                  </button>
+                  <button
+                    onClick={(e) => handleDeleteProduct(e, product.id)}
+                    className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-red-300 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50 transition-colors dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/20"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Delete
                   </button>
                 </div>
               </motion.div>
@@ -361,7 +400,6 @@ export function Inventory() {
         </>
       )}
 
-      {/* Transactions View */}
       {activeTab === "transactions" && (
         <div className="space-y-4">
           {transactions.length === 0 ? (
@@ -446,7 +484,6 @@ export function Inventory() {
         </div>
       )}
 
-      {/* Modals */}
       {selectedProduct && (
         <>
           <RecordSaleModal
@@ -472,4 +509,3 @@ export function Inventory() {
     </div>
   );
 }
-

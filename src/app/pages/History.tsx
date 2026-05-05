@@ -74,6 +74,10 @@ export function History() {
       <div className="space-y-3">
         {filteredTransactions.map((transaction, index) => {
           const isSale = transaction.action === "sale";
+          const paymentStatusColor = transaction.paymentStatus === "unpaid"
+            ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
+            : "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300";
+
           return (
             <motion.div
               key={transaction.id}
@@ -91,9 +95,19 @@ export function History() {
                     <Link to={`/app/product/${transaction.productId}`} className="font-semibold text-slate-900 hover:text-blue-600 dark:text-white dark:hover:text-blue-400">
                       {transaction.productName}
                     </Link>
-                    <p className="text-sm text-slate-600 dark:text-slate-400">
-                      {isSale ? "Sale recorded" : "Stock added"}
-                    </p>
+                    <div className="mt-1 flex flex-wrap items-center gap-2">
+                      <p className="text-sm text-slate-600 dark:text-slate-400">
+                        {isSale ? "Sale recorded" : "Stock added"}
+                      </p>
+                      {isSale && transaction.paymentStatus && (
+                        <span className={`rounded-full px-2.5 py-1 text-xs font-semibold uppercase tracking-wide ${paymentStatusColor}`}>
+                          {transaction.paymentStatus}
+                        </span>
+                      )}
+                      {isSale && transaction.billNumber && (
+                        <span className="text-xs text-slate-500 dark:text-slate-400">Bill #{transaction.billNumber}</span>
+                      )}
+                    </div>
                     <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
                       <span className="inline-flex items-center gap-1">
                         <Clock className="h-4 w-4" />

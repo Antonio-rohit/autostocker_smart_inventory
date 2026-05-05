@@ -7,6 +7,7 @@ import { buildBootstrap } from "./lib/buildBootstrap.js";
 import { createBillRecord } from "./lib/billing.js";
 import { seedDatabase } from "./lib/seedDatabase.js";
 import { authenticateToken, signToken } from "./middleware/auth.js";
+import { Bill } from "./models/Bill.js";
 import { Product } from "./models/Product.js";
 import { Transaction } from "./models/Transaction.js";
 import { User } from "./models/User.js";
@@ -108,6 +109,64 @@ app.post("/api/products", authenticateToken, async (req, res, next) => {
     });
 
     res.status(201).json({ id: product._id.toString() });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.patch("/api/products/:id", authenticateToken, async (req, res, next) => {
+  try {
+    const updates = {};
+
+    if (req.body.price !== undefined) {
+      updates.price = Number(req.body.price);
+    }
+
+    const product = await Product.findById(req.params.id);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    if (updates.price !== undefined) {
+      if (Number.isNaN(updates.price) || updates.price < 0) {
+        return res.status(400).json({ message: "Price must be a valid positive number" });
+      }
+      product.price = updates.price;
+    }
+
+    await product.save();
+    res.json({ ok: true });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.delete("/api/products/:id", authenticateToken, async (req, res, next) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    const relatedTransactions = await Transaction.find({ productId: product._id }, "_id");
+    const relatedTransactionIds = relatedTransactions.map((transaction) => transaction._id);
+
+    if (relatedTransactionIds.length > 0) {
+      await Bill.updateMany(
+        { transactionIds: { $in: relatedTransactionIds } },
+        {
+          $pull: {
+            transactionIds: { $in: relatedTransactionIds },
+            items: { productId: product._id },
+          },
+        }
+      );
+
+      await Transaction.deleteMany({ _id: { $in: relatedTransactionIds } });
+    }
+
+    await Product.deleteOne({ _id: product._id });
+    res.json({ ok: true });
   } catch (error) {
     next(error);
   }
@@ -287,4 +346,3 @@ start().catch((error) => {
   console.error("Failed to start server", error);
   process.exit(1);
 });
-

@@ -47,6 +47,15 @@ export const api = {
       method: "POST",
       body: JSON.stringify(payload),
     }),
+  updateProduct: (productId: string, payload: { price?: number }) =>
+    request<{ ok: boolean }>(`/products/${productId}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    }),
+  deleteProduct: (productId: string) =>
+    request<{ ok: boolean }>(`/products/${productId}`, {
+      method: "DELETE",
+    }),
   addStock: (productId: string, payload: { quantity: number; supplier: string; purchasePrice: number }) =>
     request<{ ok: boolean }>(`/products/${productId}/stock`, {
       method: "POST",

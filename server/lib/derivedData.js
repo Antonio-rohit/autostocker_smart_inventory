@@ -127,7 +127,7 @@ export const serializeProduct = (product, relatedTransactions = []) => {
   };
 };
 
-export const serializeTransaction = (transaction) => ({
+export const serializeTransaction = (transaction, billInfo = null) => ({
   id: transaction._id.toString(),
   productId: transaction.productId.toString(),
   productName: transaction.productName,
@@ -135,6 +135,8 @@ export const serializeTransaction = (transaction) => ({
   quantity: transaction.quantity,
   price: transaction.price,
   supplier: transaction.supplier,
+  paymentStatus: billInfo?.paymentStatus ?? null,
+  billNumber: billInfo?.billNumber ?? null,
   timestamp: transaction.timestamp.toISOString(),
 });
 

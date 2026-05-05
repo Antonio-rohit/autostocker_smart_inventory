@@ -35,6 +35,8 @@ export interface Transaction {
   quantity: number;
   price?: number;
   supplier?: string;
+  paymentStatus?: "paid" | "unpaid" | null;
+  billNumber?: string | null;
   timestamp: string;
 }
 
