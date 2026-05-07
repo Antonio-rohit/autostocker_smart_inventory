@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { Search, Plus, Minus, Trash2, ShoppingCart, ArrowLeft, Tag, AlertCircle, X } from "lucide-react";
+import { Search, Plus, Minus, Trash2, ShoppingCart, ArrowLeft, Tag, AlertCircle, X, ScanLine } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { toast } from "sonner";
+import { BarcodeScannerModal } from "../components/BarcodeScannerModal";
+import { MissingScannedProductDialog } from "../components/MissingScannedProductDialog";
 import { useAppData } from "../context/AppDataContext";
+import type { Product } from "../types";
 
 interface CartItem {
   id: string;
@@ -15,13 +18,15 @@ interface CartItem {
 
 export function QuickBilling() {
   const navigate = useNavigate();
-  const { products, checkout, loading, error, formatCurrency } = useAppData();
+  const { products, checkout, findProductBySku, loading, error, formatCurrency } = useAppData();
   const [searchQuery, setSearchQuery] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [discount, setDiscount] = useState(0);
   const [tax, setTax] = useState(0);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [scannerOpen, setScannerOpen] = useState(false);
+  const [missingSku, setMissingSku] = useState<string | null>(null);
 
   const filteredProducts = products.filter(
     (product) =>
@@ -29,17 +34,30 @@ export function QuickBilling() {
       !cart.find((item) => item.id === product.id)
   );
 
-  const addToCart = (productId: string) => {
-    const product = products.find((p) => p.id === productId);
-    if (!product) return;
-
+  const addProductToCart = (product: Product) => {
     if (product.stock === 0) {
       toast.error("Product out of stock");
       return;
     }
 
-    setCart([
-      ...cart,
+    const existingItem = cart.find((item) => item.id === product.id);
+    if (existingItem) {
+      if (existingItem.quantity >= existingItem.availableStock) {
+        toast.error("Quantity exceeds available stock");
+        return;
+      }
+
+      setCart((currentCart) =>
+        currentCart.map((item) =>
+          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+        )
+      );
+      toast.success(`${product.name} quantity increased`);
+      return;
+    }
+
+    setCart((currentCart) => [
+      ...currentCart,
       {
         id: product.id,
         name: product.name,
@@ -48,9 +66,40 @@ export function QuickBilling() {
         availableStock: product.stock,
       },
     ]);
+    toast.success(`${product.name} added to cart`);
+  };
+
+  const addToCart = (productId: string) => {
+    const product = products.find((p) => p.id === productId);
+    if (!product) return;
+
+    addProductToCart(product);
     setSearchQuery("");
     setShowSuggestions(false);
-    toast.success(`${product.name} added to cart`);
+  };
+
+  const handleScannerDetected = async (sku: string) => {
+    try {
+      const product = await findProductBySku(sku);
+      addProductToCart(product);
+      setScannerOpen(false);
+      setSearchQuery(product.name);
+      setShowSuggestions(false);
+    } catch (scannerError) {
+      const message = scannerError instanceof Error ? scannerError.message : "Unable to resolve scanned SKU";
+      if (message.includes("Product not found for scanned SKU")) {
+        setScannerOpen(false);
+        setMissingSku(sku);
+        return;
+      }
+
+      throw scannerError;
+    }
+  };
+
+  const openAddProductForMissingSku = () => {
+    if (!missingSku) return;
+    navigate("/app/add-product", { state: { prefillSku: missingSku, scannerSource: "quick-billing" } });
   };
 
   const updateQuantity = (itemId: string, delta: number) => {
@@ -72,7 +121,7 @@ export function QuickBilling() {
 
   const removeFromCart = (itemId: string) => {
     const item = cart.find((i) => i.id === itemId);
-    setCart(cart.filter((item) => item.id !== itemId));
+    setCart(cart.filter((entry) => entry.id !== itemId));
     if (item) {
       toast.success(`${item.name} removed from cart`);
     }
@@ -126,7 +175,17 @@ export function QuickBilling() {
             transition={{ delay: 0.1 }}
             className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm"
           >
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Search Products</h2>
+            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Search Products</h2>
+              <button
+                type="button"
+                onClick={() => setScannerOpen(true)}
+                className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-700"
+              >
+                <ScanLine className="h-4 w-4" />
+                Scan Barcode / QR
+              </button>
+            </div>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
               <input
@@ -186,7 +245,7 @@ export function QuickBilling() {
               <div className="text-center py-12">
                 <ShoppingCart className="w-16 h-16 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
                 <p className="text-slate-500 dark:text-slate-400">Your cart is empty</p>
-                <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">Search and add products to get started</p>
+                <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">Search, scan, and add products to get started</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -357,6 +416,21 @@ export function QuickBilling() {
           }}
         />
       )}
+
+      <BarcodeScannerModal
+        isOpen={scannerOpen}
+        title="Scan product for billing"
+        description="Scan a product barcode or QR code to add it directly into the billing cart."
+        onClose={() => setScannerOpen(false)}
+        onDetected={handleScannerDetected}
+      />
+
+      <MissingScannedProductDialog
+        isOpen={Boolean(missingSku)}
+        sku={missingSku ?? ""}
+        onClose={() => setMissingSku(null)}
+        onAddProduct={openAddProductForMissingSku}
+      />
     </div>
   );
 }
@@ -487,5 +561,3 @@ function PaymentModal({ total, subtotal, discount, discountAmount, tax, taxAmoun
     </div>
   );
 }
-
-

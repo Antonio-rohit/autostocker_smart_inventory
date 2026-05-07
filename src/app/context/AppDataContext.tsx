@@ -104,6 +104,7 @@ interface AppDataContextValue {
   error: string | null;
   refreshData: () => Promise<void>;
   createProduct: (payload: CreateProductPayload) => Promise<void>;
+  findProductBySku: (sku: string) => Promise<Product>;
   updateProductPrice: (productId: string, price: number) => Promise<void>;
   deleteProduct: (productId: string) => Promise<void>;
   addStock: (productId: string, quantity: number, supplier: string, purchasePrice: number) => Promise<void>;
@@ -247,6 +248,11 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
     },
     [refreshData]
   );
+
+  const findProductBySku = useCallback(async (sku: string) => {
+    const response = await api.lookupProductBySku(sku);
+    return response.product;
+  }, []);
 
   const updateProductPrice = useCallback(
     async (productId: string, price: number) => {
@@ -414,6 +420,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
       error,
       refreshData,
       createProduct,
+      findProductBySku,
       updateProductPrice,
       deleteProduct,
       addStock,
@@ -434,6 +441,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
       addStock,
       checkout,
       createProduct,
+      findProductBySku,
       data?.analytics,
       data?.bills,
       data?.products,
@@ -469,3 +477,5 @@ export function useAppData() {
   }
   return context;
 }
+
+

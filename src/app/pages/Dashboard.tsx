@@ -91,7 +91,7 @@ export function Dashboard() {
       >
         <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">Dashboard</h1>
         <p className="text-slate-600 dark:text-slate-400 mt-1">
-          Welcome back to {settings.businessInfo.businessName}. Here's what is happening with your inventory.
+          Welcome back to {settings.businessInfo.businessName}. Here&apos;s what is happening with your inventory.
         </p>
       </motion.div>
 

@@ -7,10 +7,10 @@ import { buildBootstrap } from "./lib/buildBootstrap.js";
 import { createBillRecord } from "./lib/billing.js";
 import { seedDatabase } from "./lib/seedDatabase.js";
 import { authenticateToken, signToken } from "./middleware/auth.js";
-import { Bill } from "./models/Bill.js";
 import { Product } from "./models/Product.js";
 import { Transaction } from "./models/Transaction.js";
 import { User } from "./models/User.js";
+import { Bill } from "./models/Bill.js";
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -19,6 +19,9 @@ const allowedOrigins = (process.env.CORS_ORIGIN || "")
   .split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);
+
+const normalizeSku = (value) => String(value || "").trim();
+const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 app.use(
   cors({
@@ -89,6 +92,35 @@ app.get("/api/bootstrap", authenticateToken, async (_req, res, next) => {
   try {
     const data = await buildBootstrap();
     res.json(data);
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get("/api/products/lookup", authenticateToken, async (req, res, next) => {
+  try {
+    const sku = normalizeSku(req.query.sku);
+    if (!sku) {
+      return res.status(400).json({ message: "SKU is required" });
+    }
+
+    const product = await Product.findOne({
+      sku: { $regex: `^${escapeRegex(sku)}$`, $options: "i" },
+    });
+
+    if (!product) {
+      return res.status(404).json({ message: "Product not found for scanned SKU" });
+    }
+
+    // Reuse bootstrap serialization so the scanner gets the same shape as the rest of the app.
+    const data = await buildBootstrap();
+    const serializedProduct = data.products.find((item) => item.id === product._id.toString());
+
+    if (!serializedProduct) {
+      return res.status(404).json({ message: "Product could not be prepared for response" });
+    }
+
+    res.json({ product: serializedProduct });
   } catch (error) {
     next(error);
   }

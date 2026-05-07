@@ -11,6 +11,25 @@ export interface PredictedDemandPoint {
   demand: number;
 }
 
+export interface ForecastTimelinePoint {
+  id: string;
+  isoDate: string;
+  label: string;
+  actualSales: number | null;
+  forecastSales: number | null;
+}
+
+export interface DemandForecast {
+  method: "linear_regression" | "moving_average";
+  lookbackDays: number;
+  forecastDays: number;
+  averageDailySales: number;
+  expectedSalesNext7Days: number;
+  stockRunOutDays: number | null;
+  stockRunOutDate: string | null;
+  timeline: ForecastTimelinePoint[];
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -25,6 +44,7 @@ export interface Product {
   monthlyRevenue: number;
   salesHistory: SalesHistoryPoint[];
   predictedDemand: PredictedDemandPoint[];
+  demandForecast: DemandForecast;
 }
 
 export interface Transaction {
@@ -116,12 +136,44 @@ export interface TopProductSummary {
   revenue: number;
 }
 
+export interface InventoryForecastPoint {
+  id: string;
+  name: string;
+  currentStock: number;
+  expectedSalesNext7Days: number;
+  averageDailySales: number;
+  stockRunOutDays: number | null;
+}
+
+export interface SmartInsight {
+  id: string;
+  title: string;
+  message: string;
+  tone: "positive" | "warning" | "info";
+}
+
+export interface AchievementBadge {
+  id: string;
+  title: string;
+  description: string;
+  tone: "gold" | "green" | "blue" | "amber";
+}
+
+export interface DashboardGamification {
+  topProductOfWeek: (TopProductSummary & { badge: string }) | null;
+  salesGrowthPercent: number;
+  achievements: AchievementBadge[];
+  periodLabel: string;
+}
+
 export interface AnalyticsData {
   salesOverTime: SalesOverTimePoint[];
   topProducts: TopProductSummary[];
   categoryPerformance: CategoryPerformancePoint[];
   seasonalData: Array<{ month: string; sales: number; revenue: number }>;
   monthlyStats: MonthlyStat[];
+  demandForecastTimeline: ForecastTimelinePoint[];
+  inventoryForecasts: InventoryForecastPoint[];
   insights: {
     bestCategory: string;
     revenueGrowth: string;
@@ -140,6 +192,8 @@ export interface DashboardData {
     revenue: number;
   };
   salesOverTime: SalesOverTimePoint[];
+  smartInsights: SmartInsight[];
+  gamification: DashboardGamification;
 }
 
 export interface BootstrapResponse {
@@ -151,3 +205,4 @@ export interface BootstrapResponse {
   recommendations: Recommendation[];
   analytics: AnalyticsData;
 }
+

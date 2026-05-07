@@ -1,16 +1,20 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router";
-import { Package, DollarSign, Hash, Tag, Save, X, Camera, Upload } from "lucide-react";
+import { useLocation, useNavigate } from "react-router";
+import { Package, DollarSign, Hash, Tag, Save, X, Camera, Upload, ScanLine } from "lucide-react";
 import { motion } from "motion/react";
 import { toast } from "sonner";
+import { BarcodeScannerModal } from "../components/BarcodeScannerModal";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import { useAppData } from "../context/AppDataContext";
 
 const CUSTOM_CATEGORY_KEY = "smart_inventory_custom_categories";
 const ADD_NEW_CATEGORY_VALUE = "__add_new_category__";
 
+type CameraMode = "photo" | "sku" | null;
+
 export function AddProduct() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { createProduct, currencyCode, formatCurrency, products } = useAppData();
   const uploadInputRef = useRef<HTMLInputElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -25,9 +29,10 @@ export function AddProduct() {
     sku: "",
     imageUrl: "",
   });
-  const [cameraOpen, setCameraOpen] = useState(false);
+  const [cameraMode, setCameraMode] = useState<CameraMode>(null);
   const [cameraError, setCameraError] = useState("");
   const [cameraReady, setCameraReady] = useState(false);
+  const [skuScannerOpen, setSkuScannerOpen] = useState(false);
   const [customCategories, setCustomCategories] = useState<string[]>(() => {
     if (typeof window === "undefined") return [];
 
@@ -59,7 +64,7 @@ export function AddProduct() {
   };
 
   useEffect(() => {
-    if (!cameraOpen) {
+    if (cameraMode !== "photo") {
       stopCamera();
       setCameraError("");
       return;
@@ -97,7 +102,20 @@ export function AddProduct() {
       active = false;
       stopCamera();
     };
-  }, [cameraOpen]);
+  }, [cameraMode]);
+
+  useEffect(() => {
+    const prefillSku = typeof location.state === "object" && location.state && "prefillSku" in location.state
+      ? String((location.state as { prefillSku?: string }).prefillSku || "").trim()
+      : "";
+
+    if (!prefillSku) {
+      return;
+    }
+
+    // Preserve manual edits so revisiting this screen from history or navigation does not overwrite user input.
+    setFormData((current) => (current.sku ? current : { ...current, sku: prefillSku }));
+  }, [location.state]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -156,13 +174,17 @@ export function AddProduct() {
     e.target.value = "";
   };
 
-  const openCamera = () => {
+  const openPhotoCamera = () => {
     if (!navigator.mediaDevices?.getUserMedia) {
       toast.error("Camera access is not supported in this browser.");
       return;
     }
 
-    setCameraOpen(true);
+    setCameraMode("photo");
+  };
+
+  const openSkuScanner = () => {
+    setSkuScannerOpen(true);
   };
 
   const capturePhoto = () => {
@@ -179,12 +201,18 @@ export function AddProduct() {
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
     const imageUrl = canvas.toDataURL("image/jpeg", 0.92);
     setFormData((current) => ({ ...current, imageUrl }));
-    setCameraOpen(false);
+    setCameraMode(null);
     toast.success("Photo captured successfully");
   };
 
   const clearImage = () => {
     setFormData((current) => ({ ...current, imageUrl: "" }));
+  };
+
+  const handleSkuDetected = async (sku: string) => {
+    setFormData((current) => ({ ...current, sku }));
+    setSkuScannerOpen(false);
+    toast.success(`SKU captured: ${sku}`);
   };
 
   return (
@@ -283,7 +311,7 @@ export function AddProduct() {
                     </button>
                     <button
                       type="button"
-                      onClick={openCamera}
+                      onClick={openPhotoCamera}
                       className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-3 font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
                     >
                       <Camera className="h-4 w-4" />
@@ -305,7 +333,7 @@ export function AddProduct() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">Price (₹{currencyCode}) *</label>
+              <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">Price (INR/{currencyCode}) *</label>
               <div className="relative">
                 <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                 <input
@@ -324,17 +352,30 @@ export function AddProduct() {
 
             <div>
               <label className="block text-sm font-medium text-slate-900 dark:text-white mb-2">SKU *</label>
-              <div className="relative">
-                <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                <input
-                  type="text"
-                  name="sku"
-                  value={formData.sku}
-                  onChange={handleChange}
-                  placeholder="e.g., WBH-001"
-                  className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-                  required
-                />
+              <div className="space-y-3">
+                <div className="relative">
+                  <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                  <input
+                    type="text"
+                    name="sku"
+                    value={formData.sku}
+                    onChange={handleChange}
+                    placeholder="e.g., WBH-001"
+                    className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                    required
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={openSkuScanner}
+                  className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-3 font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                >
+                  <ScanLine className="h-4 w-4" />
+                  Capture SKU with Camera
+                </button>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Use the camera to scan a barcode or QR code and fill the SKU automatically.
+                </p>
               </div>
             </div>
           </div>
@@ -445,7 +486,7 @@ export function AddProduct() {
         </motion.div>
       )}
 
-      {cameraOpen && (
+      {cameraMode === "photo" && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
           <motion.div
             initial={{ opacity: 0, scale: 0.96 }}
@@ -459,7 +500,7 @@ export function AddProduct() {
               </div>
               <button
                 type="button"
-                onClick={() => setCameraOpen(false)}
+                onClick={() => setCameraMode(null)}
                 className="rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
               >
                 <X className="h-5 w-5" />
@@ -477,7 +518,7 @@ export function AddProduct() {
             <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:justify-end">
               <button
                 type="button"
-                onClick={() => setCameraOpen(false)}
+                onClick={() => setCameraMode(null)}
                 className="rounded-lg border border-slate-300 px-4 py-3 font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
               >
                 Cancel
@@ -497,6 +538,14 @@ export function AddProduct() {
           </motion.div>
         </div>
       )}
+
+      <BarcodeScannerModal
+        isOpen={skuScannerOpen}
+        title="Capture SKU"
+        description="Scan the product barcode or QR code to fill the SKU automatically for this new product."
+        onClose={() => setSkuScannerOpen(false)}
+        onDetected={handleSkuDetected}
+      />
     </div>
   );
 }

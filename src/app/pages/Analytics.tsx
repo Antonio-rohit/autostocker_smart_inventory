@@ -1,10 +1,10 @@
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
-import { TrendingUp, Package, DollarSign, ShoppingCart, Calendar } from "lucide-react";
+import { TrendingUp, Package, DollarSign, ShoppingCart, Calendar, BrainCircuit } from "lucide-react";
 import { motion } from "motion/react";
 import { useAppData } from "../context/AppDataContext";
 
 export function Analytics() {
-  const { analytics, loading, error, formatCurrency, currencyCode } = useAppData();
+  const { analytics, products, loading, error, formatCurrency, currencyCode } = useAppData();
   const COLORS = ["#2563EB", "#22C55E", "#F59E0B", "#EF4444"];
 
   if (loading && !analytics) {
@@ -14,6 +14,9 @@ export function Analytics() {
   if (error || !analytics) {
     return <div className="text-red-600 dark:text-red-400">{error || "Analytics data is unavailable."}</div>;
   }
+
+  const highestForecastProduct = [...products]
+    .sort((a, b) => b.demandForecast.expectedSalesNext7Days - a.demandForecast.expectedSalesNext7Days)[0];
 
   return (
     <div className="space-y-6">
@@ -46,6 +49,35 @@ export function Analytics() {
           );
         })}
       </div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.35 }}
+        className="grid grid-cols-1 md:grid-cols-3 gap-4"
+      >
+        <div className="rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-blue-100 p-6 dark:border-blue-800 dark:from-blue-900/20 dark:to-blue-800/20">
+          <p className="text-sm font-medium text-blue-700 dark:text-blue-300">Expected sales next 7 days</p>
+          <p className="mt-2 text-3xl font-bold text-blue-900 dark:text-blue-100">
+            {Math.round(analytics.inventoryForecasts.reduce((sum, item) => sum + item.expectedSalesNext7Days, 0))} units
+          </p>
+          <p className="mt-2 text-sm text-blue-700 dark:text-blue-300">Aggregated forecast across current inventory</p>
+        </div>
+        <div className="rounded-xl border border-amber-200 bg-gradient-to-br from-amber-50 to-amber-100 p-6 dark:border-amber-800 dark:from-amber-900/20 dark:to-amber-800/20">
+          <p className="text-sm font-medium text-amber-700 dark:text-amber-300">Closest stock run-out</p>
+          <p className="mt-2 text-3xl font-bold text-amber-900 dark:text-amber-100">
+            {analytics.inventoryForecasts.find((item) => item.stockRunOutDays !== null)?.stockRunOutDays?.toFixed(1) ?? "Stable"}
+          </p>
+          <p className="mt-2 text-sm text-amber-700 dark:text-amber-300">Days until the most at-risk product runs dry</p>
+        </div>
+        <div className="rounded-xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-emerald-100 p-6 dark:border-emerald-800 dark:from-emerald-900/20 dark:to-emerald-800/20">
+          <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300">Highest forecast product</p>
+          <p className="mt-2 text-2xl font-bold text-emerald-900 dark:text-emerald-100">{highestForecastProduct?.name ?? "N/A"}</p>
+          <p className="mt-2 text-sm text-emerald-700 dark:text-emerald-300">
+            {highestForecastProduct ? `${Math.round(highestForecastProduct.demandForecast.expectedSalesNext7Days)} units expected` : "Waiting for sales data"}
+          </p>
+        </div>
+      </motion.div>
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -86,11 +118,42 @@ export function Analytics() {
         </div>
       </motion.div>
 
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+        className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm"
+      >
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Predictive Demand Forecast</h2>
+            <p className="text-sm text-slate-600 dark:text-slate-400">Recent daily sales plus expected demand for the next 7 days</p>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400">
+            <BrainCircuit className="w-4 h-4" />
+            <span>ML-lite forecast</span>
+          </div>
+        </div>
+        <div className="h-80">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={analytics.demandForecastTimeline}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+              <XAxis dataKey="label" stroke="#64748b" fontSize={12} />
+              <YAxis stroke="#64748b" fontSize={12} />
+              <Tooltip />
+              <Legend />
+              <Line type="monotone" dataKey="actualSales" stroke="#2563EB" strokeWidth={3} dot={{ fill: "#2563EB", r: 3 }} name="Actual daily sales" connectNulls />
+              <Line type="monotone" dataKey="forecastSales" stroke="#22C55E" strokeWidth={3} strokeDasharray="5 5" dot={{ fill: "#22C55E", r: 3 }} name="Forecast daily sales" connectNulls />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </motion.div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.5 }}
+          transition={{ delay: 0.6 }}
           className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm"
         >
           <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-6">Top Products</h2>
@@ -116,7 +179,7 @@ export function Analytics() {
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.6 }}
+          transition={{ delay: 0.7 }}
           className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm"
         >
           <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-6">Category Performance</h2>
@@ -164,7 +227,32 @@ export function Analytics() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.7 }}
+        transition={{ delay: 0.8 }}
+        className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm"
+      >
+        <div className="mb-6">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Inventory Forecast Risk</h2>
+          <p className="text-sm text-slate-600 dark:text-slate-400">Products most likely to need replenishment soon</p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+          {analytics.inventoryForecasts.map((item) => (
+            <div key={item.id} className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900/60">
+              <p className="font-semibold text-slate-900 dark:text-white">{item.name}</p>
+              <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">Current stock: {item.currentStock} units</p>
+              <p className="text-sm text-slate-600 dark:text-slate-400">Expected next 7 days: {Math.round(item.expectedSalesNext7Days)} units</p>
+              <p className="text-sm text-slate-600 dark:text-slate-400">Average daily sales: {Math.round(item.averageDailySales)} units/day</p>
+              <p className="mt-3 text-sm font-medium text-slate-900 dark:text-white">
+                {item.stockRunOutDays === null ? "No run-out risk yet" : Math.ceil(item.stockRunOutDays) <= 0 ? "Stock may run out Today" : Math.ceil(item.stockRunOutDays) === 1 ? "Stock may run out Tomorrow" : `Stock may run out in ${Math.ceil(item.stockRunOutDays)} days`}
+              </p>
+            </div>
+          ))}
+        </div>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.9 }}
         className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm"
       >
         <div className="mb-6">
@@ -204,7 +292,7 @@ export function Analytics() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.8 }}
+        transition={{ delay: 1.0 }}
         className="grid grid-cols-1 md:grid-cols-3 gap-4"
       >
         <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl border border-blue-200 dark:border-blue-800 p-6">
@@ -226,4 +314,5 @@ export function Analytics() {
     </div>
   );
 }
+
 

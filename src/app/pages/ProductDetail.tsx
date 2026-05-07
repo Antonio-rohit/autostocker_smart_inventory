@@ -1,5 +1,5 @@
 import { useParams, Link } from "react-router";
-import { ArrowLeft, Package, DollarSign, TrendingUp, Sparkles, BarChart3 } from "lucide-react";
+import { ArrowLeft, Package, DollarSign, TrendingUp, Sparkles, BarChart3, CalendarClock } from "lucide-react";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { motion } from "motion/react";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
@@ -36,26 +36,20 @@ export function ProductDetail() {
     overstock: "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800",
   };
 
-  const chartData = [
-    ...product.salesHistory.map((item) => ({
-      month: item.month,
-      actualSales: item.sales,
-      actualRevenue: item.revenue,
-      predictedDemand: null,
-    })),
-    ...product.predictedDemand.map((item) => ({
-      month: item.month,
-      actualSales: null,
-      actualRevenue: null,
-      predictedDemand: item.demand,
-    })),
-  ];
+  const forecast = product.demandForecast;
+  const formatUnits = (value: number) => Math.round(value).toString();
+  const stockRunOutLabel =
+    forecast.stockRunOutDays === null
+      ? "No run-out risk"
+      : forecast.stockRunOutDays <= 1
+        ? "Within 1 day"
+        : `In ${Math.ceil(forecast.stockRunOutDays)} days`;
 
   const getAIInsight = () => {
     if (product.status === "low") {
       return {
         title: "Restock Recommended",
-        message: `Current stock (${product.stock} units) is below target. Projected demand next month is ${product.predictedDemand[0]?.demand ?? product.optimalStock} units.`,
+        message: `The forecast expects ${formatUnits(forecast.expectedSalesNext7Days)} units over the next 7 days, and current stock could run out ${stockRunOutLabel.toLowerCase()}.`,
         bgColor: "bg-red-50 dark:bg-red-900/20",
         borderColor: "border-red-500",
       };
@@ -63,14 +57,14 @@ export function ProductDetail() {
     if (product.status === "overstock") {
       return {
         title: "Excess Stock Detected",
-        message: `Current stock exceeds the optimal level. Consider moving ${product.stock - product.optimalStock} excess units with a promotion.`,
+        message: `Current stock exceeds the optimal level. The forecast still expects ${formatUnits(forecast.expectedSalesNext7Days)} units over the next 7 days, so you can reduce stock gradually instead of immediately discounting.`,
         bgColor: "bg-amber-50 dark:bg-amber-900/20",
         borderColor: "border-amber-500",
       };
     }
     return {
-      title: "Stock Level Optimal",
-      message: "Current stock levels are balanced against projected demand. Maintain the current inventory strategy.",
+      title: "Demand Looks Stable",
+      message: `Projected sales for the next 7 days are ${formatUnits(forecast.expectedSalesNext7Days)} units. Current stock cover is ${stockRunOutLabel.toLowerCase()}.`,
       bgColor: "bg-green-50 dark:bg-green-900/20",
       borderColor: "border-green-500",
     };
@@ -78,6 +72,7 @@ export function ProductDetail() {
 
   const aiInsight = getAIInsight();
   const hasSales = product.salesHistory.some((item) => item.sales > 0 || item.revenue > 0);
+  const hasDailyDemandData = forecast.timeline.some((item) => (item.actualSales ?? 0) > 0 || (item.forecastSales ?? 0) > 0);
 
   return (
     <div className="space-y-6">
@@ -115,12 +110,14 @@ export function ProductDetail() {
         </div>
       </motion.div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
         {[
           { label: "Current Stock", value: `${product.stock} units`, icon: Package },
           { label: "Optimal Stock", value: `${product.optimalStock} units`, icon: Package },
           { label: "Price", value: formatCurrency(product.price), icon: DollarSign },
           { label: "Monthly Revenue", value: formatCurrency(product.monthlyRevenue), icon: TrendingUp },
+          { label: "Expected Sales (Next 7 Days)", value: `${formatUnits(forecast.expectedSalesNext7Days)} units`, icon: BarChart3 },
+          { label: "Stock Cover", value: stockRunOutLabel, icon: CalendarClock },
         ].map((metric, index) => {
           const Icon = metric.icon;
           return (
@@ -128,7 +125,7 @@ export function ProductDetail() {
               key={metric.label}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
+              transition={{ delay: index * 0.08 }}
               className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm"
             >
               <div className="flex items-center gap-3 mb-2">
@@ -154,9 +151,12 @@ export function ProductDetail() {
           <div className="flex-1">
             <h3 className="font-semibold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-              Stock Insight: {aiInsight.title}
+              Predictive Insight: {aiInsight.title}
             </h3>
             <p className="text-slate-700 dark:text-slate-300">{aiInsight.message}</p>
+            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+              Forecast method: {forecast.method === "linear_regression" ? "Linear regression" : "Moving average fallback"}
+            </p>
           </div>
         </div>
       </motion.div>
@@ -168,7 +168,7 @@ export function ProductDetail() {
           transition={{ delay: 0.5 }}
           className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm"
         >
-          <h3 className="font-semibold text-slate-900 dark:text-white mb-4">Sales History</h3>
+          <h3 className="font-semibold text-slate-900 dark:text-white mb-4">Monthly Sales History</h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={product.salesHistory}>
@@ -182,7 +182,7 @@ export function ProductDetail() {
           </div>
           {!hasSales && (
             <div className="mt-4 rounded-lg bg-slate-50 px-4 py-3 text-sm text-slate-600 dark:bg-slate-900 dark:text-slate-400">
-              No sales have been recorded for this product yet. The chart will update automatically after transactions.
+              No sales have been recorded for this product yet. The monthly chart will update automatically after transactions.
             </div>
           )}
         </motion.div>
@@ -193,29 +193,25 @@ export function ProductDetail() {
           transition={{ delay: 0.6 }}
           className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm"
         >
-          <h3 className="font-semibold text-slate-900 dark:text-white mb-4">Selling Trend & Forecast</h3>
+          <h3 className="font-semibold text-slate-900 dark:text-white mb-4">Daily Forecast (Next 7 Days)</h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData}>
+              <LineChart data={forecast.timeline}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                <XAxis dataKey="month" stroke="#64748b" fontSize={12} />
+                <XAxis dataKey="label" stroke="#64748b" fontSize={12} />
                 <YAxis stroke="#64748b" fontSize={12} />
                 <Tooltip />
                 <Legend />
-                <Line type="monotone" dataKey="actualSales" stroke="#2563EB" strokeWidth={3} dot={{ fill: "#2563EB", r: 4 }} name="Actual Sales" connectNulls />
-                <Line
-                  type="monotone"
-                  dataKey="predictedDemand"
-                  stroke="#22C55E"
-                  strokeWidth={3}
-                  strokeDasharray="5 5"
-                  dot={{ fill: "#22C55E", r: 4 }}
-                  name="Predicted Demand"
-                  connectNulls
-                />
+                <Line type="monotone" dataKey="actualSales" stroke="#2563EB" strokeWidth={3} dot={{ fill: "#2563EB", r: 4 }} name="Actual Daily Sales" connectNulls />
+                <Line type="monotone" dataKey="forecastSales" stroke="#22C55E" strokeWidth={3} strokeDasharray="5 5" dot={{ fill: "#22C55E", r: 4 }} name="Forecast Daily Sales" connectNulls />
               </LineChart>
             </ResponsiveContainer>
           </div>
+          {!hasDailyDemandData && (
+            <div className="mt-4 rounded-lg bg-slate-50 px-4 py-3 text-sm text-slate-600 dark:bg-slate-900 dark:text-slate-400">
+              Recent daily sales are still sparse, so the system is using a flat moving-average baseline until more history is recorded.
+            </div>
+          )}
         </motion.div>
       </div>
 
@@ -240,21 +236,20 @@ export function ProductDetail() {
             <p className="font-medium text-slate-900 dark:text-white">{formatCurrency(product.price)}</p>
           </div>
           <div>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Current Stock</p>
-            <p className="font-medium text-slate-900 dark:text-white">{product.stock} units</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Average Daily Sales</p>
+            <p className="font-medium text-slate-900 dark:text-white">{formatUnits(forecast.averageDailySales)} units/day</p>
           </div>
           <div>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Optimal Stock</p>
-            <p className="font-medium text-slate-900 dark:text-white">{product.optimalStock} units</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Expected Next 7 Days</p>
+            <p className="font-medium text-slate-900 dark:text-white">{formatUnits(forecast.expectedSalesNext7Days)} units</p>
           </div>
           <div>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Stock Status</p>
-            <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${statusColors[product.status]}`}>
-              {product.status}
-            </span>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Stock Run-Out Estimate</p>
+            <p className="font-medium text-slate-900 dark:text-white">{stockRunOutLabel}</p>
           </div>
         </div>
       </motion.div>
     </div>
   );
 }
+

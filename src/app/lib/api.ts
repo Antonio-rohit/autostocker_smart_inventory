@@ -1,4 +1,4 @@
-import type { BootstrapResponse } from "../types";
+import type { BootstrapResponse, Product } from "../types";
 import { getAuthToken } from "./auth";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api";
@@ -34,6 +34,8 @@ export const api = {
     }),
   getMe: () => request<{ user: { id: string; name: string; email: string } }>("/auth/me"),
   getBootstrap: () => request<BootstrapResponse>("/bootstrap"),
+  lookupProductBySku: (sku: string) =>
+    request<{ product: Product }>(`/products/lookup?sku=${encodeURIComponent(sku)}`),
   createProduct: (payload: {
     name: string;
     category: string;

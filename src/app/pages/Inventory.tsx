@@ -1,15 +1,18 @@
 import { useState } from "react";
-import { Link } from "react-router";
-import { Search, Filter, ArrowUpDown, Plus, Package, TrendingUp, TrendingDown, Minus, ShoppingCart, PackagePlus, Clock, Pencil, Trash2 } from "lucide-react";
+import { Link, useNavigate } from "react-router";
+import { Search, Filter, ArrowUpDown, Plus, Package, TrendingUp, TrendingDown, Minus, ShoppingCart, PackagePlus, Clock, Pencil, Trash2, ScanLine } from "lucide-react";
 import { motion } from "motion/react";
 import { RecordSaleModal } from "../components/RecordSaleModal";
 import { AddStockModal } from "../components/AddStockModal";
+import { BarcodeScannerModal } from "../components/BarcodeScannerModal";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
+import { MissingScannedProductDialog } from "../components/MissingScannedProductDialog";
 import { toast } from "sonner";
 import { useAppData } from "../context/AppDataContext";
 
 export function Inventory() {
-  const { products, transactions, addStock, recordSale, updateProductPrice, deleteProduct, loading, error, formatCurrency } = useAppData();
+  const navigate = useNavigate();
+  const { products, transactions, addStock, recordSale, findProductBySku, updateProductPrice, deleteProduct, loading, error, formatCurrency } = useAppData();
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -19,6 +22,8 @@ export function Inventory() {
   const [saleModalOpen, setSaleModalOpen] = useState(false);
   const [stockModalOpen, setStockModalOpen] = useState(false);
   const [animatedProductId, setAnimatedProductId] = useState<string | null>(null);
+  const [scannerOpen, setScannerOpen] = useState(false);
+  const [missingSku, setMissingSku] = useState<string | null>(null);
 
   const categories = ["all", ...Array.from(new Set(products.map((p) => p.category)))];
 
@@ -106,6 +111,29 @@ export function Inventory() {
     toast.success(`${product.name} deleted`);
   };
 
+  const handleScannerDetected = async (sku: string) => {
+    try {
+      const product = await findProductBySku(sku);
+      setScannerOpen(false);
+      toast.success(`${product.name} opened from scanner`);
+      navigate(`/app/product/${product.id}`);
+    } catch (scannerError) {
+      const message = scannerError instanceof Error ? scannerError.message : "Unable to resolve scanned SKU";
+      if (message.includes("Product not found for scanned SKU")) {
+        setScannerOpen(false);
+        setMissingSku(sku);
+        return;
+      }
+
+      throw scannerError;
+    }
+  };
+
+  const openAddProductForMissingSku = () => {
+    if (!missingSku) return;
+    navigate("/app/add-product", { state: { prefillSku: missingSku, scannerSource: "inventory" } });
+  };
+
   const onRecordSale = async (productId: string, quantity: number, totalPrice: number) => {
     const product = products.find((p) => p.id === productId);
     if (product) {
@@ -157,13 +185,23 @@ export function Inventory() {
             Manage and monitor your product stock levels
           </p>
         </div>
-        <Link
-          to="/app/add-product"
-          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/30"
-        >
-          <Plus className="w-5 h-5" />
-          Add Product
-        </Link>
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <button
+            type="button"
+            onClick={() => setScannerOpen(true)}
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+          >
+            <ScanLine className="w-5 h-5" />
+            Scan Barcode / QR
+          </button>
+          <Link
+            to="/app/add-product"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/30"
+          >
+            <Plus className="w-5 h-5" />
+            Add Product
+          </Link>
+        </div>
       </motion.div>
 
       <motion.div
@@ -506,6 +544,23 @@ export function Inventory() {
           />
         </>
       )}
+      <BarcodeScannerModal
+        isOpen={scannerOpen}
+        title="Scan product for inventory"
+        description="Scan a product barcode or QR code to jump straight to its inventory detail page."
+        onClose={() => setScannerOpen(false)}
+        onDetected={handleScannerDetected}
+      />
+      <MissingScannedProductDialog
+        isOpen={Boolean(missingSku)}
+        sku={missingSku ?? ""}
+        onClose={() => setMissingSku(null)}
+        onAddProduct={openAddProductForMissingSku}
+      />
     </div>
   );
 }
+
+
+
+
